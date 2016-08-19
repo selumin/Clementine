@@ -160,6 +160,7 @@ signals:
   void PlaylistPlay();
   void PlaylistStopAfter();
   void PlaylistQueue();
+  void PlaylistSaveQueue();
   void PlaylistSkip();
   void PlaylistRemoveCurrent();
   void PlaylistEditFinished(const QModelIndex& index);
@@ -352,6 +353,7 @@ signals:
   QAction* playlist_delete_;
   QAction* playlist_open_in_browser_;
   QAction* playlist_queue_;
+  QAction* playlist_queue_save;
   QAction* playlist_skip_;
   QAction* playlist_add_to_another_;
   QList<QAction*> playlistitem_actions_;

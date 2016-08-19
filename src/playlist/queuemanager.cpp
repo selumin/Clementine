@@ -39,6 +39,7 @@ QueueManager::QueueManager(QWidget* parent)
   ui_->move_up->setIcon(IconLoader::Load("go-up", IconLoader::Base));
   ui_->remove->setIcon(IconLoader::Load("edit-delete", IconLoader::Base));
   ui_->clear->setIcon(IconLoader::Load("edit-clear-list", IconLoader::Base));
+  ui_->save->setIcon(IconLoader::Load("document-save", IconLoader::Base)); // Icon change
 
   // Set a standard shortcut
   ui_->remove->setShortcut(QKeySequence::Delete);
@@ -48,6 +49,7 @@ QueueManager::QueueManager(QWidget* parent)
   connect(ui_->move_up, SIGNAL(clicked()), SLOT(MoveUp()));
   connect(ui_->remove, SIGNAL(clicked()), SLOT(Remove()));
   connect(ui_->clear, SIGNAL(clicked()), SLOT(Clear()));
+  connect(ui_->save, SIGNAL(clicked()), SIGNAL(QueueSaveRequested()));
 
   QShortcut* close = new QShortcut(QKeySequence::Close, this);
   connect(close, SIGNAL(activated()), SLOT(close()));
@@ -147,7 +149,10 @@ void QueueManager::UpdateButtonState() {
     ui_->remove->setEnabled(false);
   }
 
-  ui_->clear->setEnabled(!current_playlist_->queue()->is_empty());
+  bool is_queue_empty = current_playlist_->queue()->is_empty();
+  ui_->clear->setEnabled(!is_queue_empty);
+  ui_->save->setEnabled(!is_queue_empty);
+
 }
 
 void QueueManager::PlaylistDestroyed() {

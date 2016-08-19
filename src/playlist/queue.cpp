@@ -337,3 +337,16 @@ void Queue::Remove(QList<int>& proxy_rows) {
 
   layoutChanged();
 }
+
+QList<QUrl> Queue::urls() const {
+  QList<QUrl> urls;
+
+  foreach (QPersistentModelIndex index, source_indexes_) {
+      if (index.isValid())
+        urls << index.sibling(index.row(), Playlist::Column_Filename)
+                    .data()
+                    .toUrl();
+  }
+
+  return urls;
+}

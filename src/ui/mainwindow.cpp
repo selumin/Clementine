@@ -675,6 +675,10 @@ MainWindow::MainWindow(Application* app, SystemTrayIcon* tray_icon, OSD* osd,
   playlist_queue_ = playlist_menu_->addAction("", this, SLOT(PlaylistQueue()));
   playlist_queue_->setShortcut(QKeySequence("Ctrl+D"));
   ui_->playlist->addAction(playlist_queue_);
+  playlist_queue_save = playlist_menu_->addAction(
+      IconLoader::Load("document-save", IconLoader::Base),
+      tr("Save queue as playlist"), this, SLOT(PlaylistSaveQueue()));
+  ui_->playlist->addAction(playlist_queue_save);
   playlist_skip_ = playlist_menu_->addAction("", this, SLOT(PlaylistSkip()));
   ui_->playlist->addAction(playlist_skip_);
 
@@ -940,6 +944,10 @@ MainWindow::MainWindow(Application* app, SystemTrayIcon* tray_icon, OSD* osd,
   connect(app_->playlist_manager()->sequence(),
           SIGNAL(ShuffleModeChanged(PlaylistSequence::ShuffleMode)), osd_,
           SLOT(ShuffleModeChanged(PlaylistSequence::ShuffleMode)));
+
+  // Queue Manager
+  connect(queue_manager_.get(), SIGNAL(QueueSaveRequested()), this,
+          SLOT(PlaylistSaveQueue()));
 
 #ifdef HAVE_LIBLASTFM
   connect(app_->scrobbler(), SIGNAL(ScrobbleSubmitted()),
@@ -1729,6 +1737,8 @@ void MainWindow::PlaylistRightClick(const QPoint& global_pos,
     playlist_queue_->setText(tr("Queue selected tracks"));
   else
     playlist_queue_->setText(tr("Toggle queue status"));
+
+  playlist_queue_save->setVisible(in_queue > 0);
 
   if (in_skipped == 1 && not_in_skipped == 0)
     playlist_skip_->setText(tr("Unskip track"));
@@ -2818,4 +2828,22 @@ void MainWindow::keyPressEvent(QKeyEvent* event) {
   } else {
     QMainWindow::keyPressEvent(event);
   }
+}
+
+void MainWindow::PlaylistSaveQueue(){
+    QList<QUrl> urls = app_->playlist_manager()->current()->queue()->urls();
+
+    if (urls.isEmpty())
+        return;
+
+    MimeData *data = new MimeData;
+    data->setUrls(urls);
+
+    QString playlist_name = app_->playlist_manager()->GetPlaylistName(
+                app_->playlist_manager()->current_id());
+    playlist_name.prepend(tr("Queue from "));
+
+    data->name_for_new_playlist_ = playlist_name;
+    ApplyAddBehaviour(AddBehaviour_OpenInNew, data);
+    AddToPlaylist(data);
 }

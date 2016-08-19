@@ -45,6 +45,9 @@ class Queue : public QAbstractProxyModel {
   void MoveDown(int row);
   void Remove(QList<int>& proxy_rows);
 
+  // Export the queue
+  QList<QUrl> urls() const;
+
   // QAbstractProxyModel
   void setSourceModel(QAbstractItemModel* source_model);
   QModelIndex mapFromSource(const QModelIndex& source_index) const;

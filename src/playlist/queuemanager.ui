@@ -108,6 +108,22 @@
         </widget>
        </item>
        <item>
+        <widget class="QPushButton" name="save">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="toolTip">
+          <string>Save</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="shortcut">
+          <string>Ctrl+S</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QPushButton" name="clear">
          <property name="enabled">
           <bool>false</bool>

@@ -35,6 +35,9 @@ class QueueManager : public QDialog {
 
   void SetPlaylistManager(PlaylistManager* manager);
 
+ signals:
+  void QueueSaveRequested();
+
  private slots:
   void CurrentPlaylistChanged(Playlist* playlist);
   void PlaylistDestroyed();
