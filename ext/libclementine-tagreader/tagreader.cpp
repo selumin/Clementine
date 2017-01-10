@@ -568,6 +568,11 @@ void TagReader::ParseOggTag(const TagLib::Ogg::FieldListMap& map,
                         .trimmed()
                         .toFloat() *
                     100);
+
+  if (!map["LYRICS"].isEmpty())
+    Decode(map["LYRICS"].front(), codec, song->mutable_lyrics());
+  else if (!map["UNSYNCEDLYRICS"].isEmpty())
+    Decode(map["UNSYNCEDLYRICS"].front(), codec, song->mutable_lyrics());
 }
 
 void TagReader::SetVorbisComments(
@@ -593,9 +598,15 @@ void TagReader::SetVorbisComments(
       true);
 
   // Try to be coherent, the two forms are used but the first one is preferred
+
   vorbis_comments->addField("ALBUMARTIST",
                             StdStringToTaglibString(song.albumartist()), true);
   vorbis_comments->removeField("ALBUM ARTIST");
+
+  vorbis_comments->addField("LYRICS",
+                            StdStringToTaglibString(song.lyrics()), true);
+  vorbis_comments->removeField("UNSYNCEDLYRICS");
+
 }
 
 void TagReader::SetFMPSStatisticsVorbisComments(
@@ -698,9 +709,9 @@ bool TagReader::SaveFile(const QString& filename,
         TagLib::MP4::Item(song.disc() <= 0 - 1 ? 0 : song.disc(), 0);
     tag->itemListMap()["tmpo"] = TagLib::StringList(
         song.bpm() <= 0 - 1 ? "0" : TagLib::String::number(song.bpm()));
-    tag->itemListMap()["\251wrt"] = TagLib::StringList(song.composer());
-    tag->itemListMap()["\251grp"] = TagLib::StringList(song.grouping());
-    tag->itemListMap()["aART"] = TagLib::StringList(song.albumartist());
+    tag->itemListMap()["\251wrt"] = TagLib::StringList(song.composer().c_str());
+    tag->itemListMap()["\251grp"] = TagLib::StringList(song.grouping().c_str());
+    tag->itemListMap()["aART"] = TagLib::StringList(song.albumartist().c_str());
     tag->itemListMap()["cpil"] =
         TagLib::StringList(song.compilation() ? "1" : "0");
   }
