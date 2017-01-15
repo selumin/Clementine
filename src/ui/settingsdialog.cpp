@@ -79,6 +79,10 @@
 #include "internet/seafile/seafilesettingspage.h"
 #endif
 
+#ifdef HAVE_YANDEX_DISK
+#include "internet/yandexdisk/yadisksettingspage.h"
+#endif
+
 #include <QAbstractButton>
 #include <QDesktopWidget>
 #include <QPainter>
@@ -180,6 +184,10 @@ SettingsDialog::SettingsDialog(Application* app, BackgroundStreams* streams,
 
 #ifdef HAVE_SEAFILE
   AddPage(Page_Seafile, new SeafileSettingsPage(this), providers);
+#endif
+
+#ifdef HAVE_YANDEX_DISK
+  AddPage(Page_YandexDisk, new YandexDiskSettingsPage(this), providers);
 #endif
 
 #ifdef HAVE_AMAZON_CLOUD_DRIVE

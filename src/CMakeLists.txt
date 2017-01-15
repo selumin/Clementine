@@ -1179,6 +1179,20 @@ optional_source(HAVE_SEAFILE
     internet/seafile/seafilesettingspage.ui
 )
 
+# Yandex.Music support
+optional_source(HAVE_YANDEX_DISK
+  SOURCES
+    internet/yandexdisk/yadiskservice.cpp
+    internet/yandexdisk/yadisksettingspage.cpp
+    #internet/yandexdisk/yadiskurlhandler.cpp
+  HEADERS
+    internet/yandexdisk/yadiskservice.h
+    internet/yandexdisk/yadisksettingspage.h
+    #internet/yandexdisk/yadiskurlhandler.h
+  UI
+    internet/yandexdisk/yadisksettingspage.ui
+)
+
 # Pulse audio integration
 optional_source(HAVE_LIBPULSE
   INCLUDE_DIRECTORIES
