@@ -14,7 +14,10 @@
    along with Clementine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
+
 #include "yadiskservice.h"
+#include "internet/core/oauthenticator.h"
 #include "ui/iconloader.h"
 
 const char* YandexDiskService::kServiceName = "Yandex.Disk";
@@ -42,6 +45,10 @@ void YandexDiskService::Connect() {
 
 void YandexDiskService::ForgetCredentials() {
   access_token_.clear();
+}
+
+void YandexDiskService::AuthenticationFinished(OAuthenticator* oauth) {
+  oauth->deleteLater();
 }
 
 void YandexDiskService::GetFileList() {

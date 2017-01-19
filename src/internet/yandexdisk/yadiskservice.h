@@ -19,6 +19,8 @@
 
 #include "internet/core/cloudfileservice.h"
 
+class OAuthenticator;
+
 class YandexDiskService : public CloudFileService {
   Q_OBJECT
 
@@ -33,9 +35,15 @@ public:
 
   QUrl GetStreamingUrlFromSongId(const QUrl& url);
 
+signals:
+  void Connected();
+
 public slots:
   void Connect() override;
   void ForgetCredentials();
+
+private slots:
+  void AuthenticationFinished(OAuthenticator* oauth);
 
 private:
   void GetFileList();

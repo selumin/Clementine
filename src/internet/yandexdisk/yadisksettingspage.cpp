@@ -15,15 +15,26 @@
 */
 
 #include "yadisksettingspage.h"
+#include "ui_yadisksettingspage.h"
 
 #include <QSortFilterProxyModel>
 
-#include "ui_yadisksettingspage.h"
 #include "core/application.h"
+#include "internet/core/oauthenticator.h"
 #include "internet/yandexdisk/yadiskservice.h"
 #include "internet/core/internetmodel.h"
 #include "ui/settingsdialog.h"
 #include "ui/iconloader.h"
+
+namespace {
+static const char* kOAuthEndpoint =
+    "https://oauth.yandex.ru/authorize";
+static const char* kOAuthClientId = "36f9cfadbf8c4f87ae9fbead439a8a6d";
+static const char* kOAuthClientSecret = "afb61b309d144fdab1c49fd2014c60b1";
+static const char* kOAuthTokenEndpoint =
+    "https://oauth.yandex.ru/token";
+static const char* kOAuthScope = "";
+}
 
 YandexDiskSettingsPage::YandexDiskSettingsPage(SettingsDialog* parent)
     : SettingsPage(parent),
@@ -60,8 +71,16 @@ void YandexDiskSettingsPage::Save() {
 }
 
 void YandexDiskSettingsPage::LoginClicked() {
-  service_->Connect();
-  ui_->login_button->setEnabled(false);
+  OAuthenticator* authenticator =
+      new OAuthenticator(kOAuthClientId, kOAuthClientSecret,
+                         OAuthenticator::RedirectStyle::REMOTE_WITH_STATE);
+  connect(authenticator, SIGNAL(Finished()), SLOT(Connected()));
+  NewClosure(authenticator, SIGNAL(Finished()), service_,
+             SLOT(AuthenticationFinished(OAuthenticator*)), authenticator);
+  authenticator->StartAuthorisation(kOAuthEndpoint, kOAuthTokenEndpoint,
+                                    kOAuthScope);
+
+  ui_->login_button->setEnabled(false);;
 }
 
 bool YandexDiskSettingsPage::eventFilter(QObject* object, QEvent* event) {

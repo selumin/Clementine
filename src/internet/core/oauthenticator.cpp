@@ -32,7 +32,7 @@
 #include "internet/core/localredirectserver.h"
 
 const char* OAuthenticator::kRemoteURL =
-    "https://clementine-data.appspot.com/skydrive";
+    "https://clementine-data.appspot.com/oauth";
 
 OAuthenticator::OAuthenticator(const QString& client_id,
                                const QString& client_secret,
@@ -131,9 +131,12 @@ void OAuthenticator::FetchAccessTokenFinished(QNetworkReply* reply) {
     return;
   }
 
+  // Temporary workaround
+  QByteArray replyData = reply->readAll();
+
   QJson::Parser parser;
   bool ok = false;
-  QVariantMap result = parser.parse(reply, &ok).toMap();
+  QVariantMap result = parser.parse(replyData, &ok).toMap();
   if (!ok) {
     qLog(Error) << "Failed to parse oauth reply";
     return;
