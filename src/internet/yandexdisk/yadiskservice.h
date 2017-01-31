@@ -20,6 +20,9 @@
 #include "internet/core/cloudfileservice.h"
 
 class OAuthenticator;
+class QNetworkReply;
+class QNetworkRequest;
+class QUrl;
 
 class YandexDiskService : public CloudFileService {
   Q_OBJECT
@@ -33,7 +36,9 @@ public:
 
   bool has_credentials() const override;
 
-  QUrl GetStreamingUrlFromSongId(const QUrl& url);
+  QUrl GetDownloadUrlForFile(const QString& file);
+
+  void StartAuthentification();
 
 signals:
   void Connected();
@@ -44,11 +49,15 @@ public slots:
 
 private slots:
   void AuthenticationFinished(OAuthenticator* oauth);
+  void GetFileListFinished(QNetworkReply* reply);
 
 private:
-  void GetFileList();
+  void AddAuthorizationHeader(QNetworkRequest& request);
+  void GetFileList(const QString& folder);
+  void EnsureConnected();
 
-  QString access_token_;
+  QString     access_token_;
+  QDateTime   expiry_time_;
 
 };
 

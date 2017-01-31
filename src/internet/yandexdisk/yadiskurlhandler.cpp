@@ -23,6 +23,7 @@ YandexDiskUrlHandler::YandexDiskUrlHandler(YandexDiskService* service,
 
 UrlHandler::LoadResult YandexDiskUrlHandler::StartLoading(const QUrl& url) {
   QString file_id(url.path());
-  QUrl real_url = service_->GetStreamingUrlFromSongId(file_id);
+  qDebug() << file_id;
+  QUrl real_url = service_->GetDownloadUrlForFile(file_id);
   return LoadResult(url, LoadResult::TrackAvailable, real_url);
 }

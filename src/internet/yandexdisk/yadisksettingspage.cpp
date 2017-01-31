@@ -26,16 +26,6 @@
 #include "ui/settingsdialog.h"
 #include "ui/iconloader.h"
 
-namespace {
-static const char* kOAuthEndpoint =
-    "https://oauth.yandex.ru/authorize";
-static const char* kOAuthClientId = "36f9cfadbf8c4f87ae9fbead439a8a6d";
-static const char* kOAuthClientSecret = "afb61b309d144fdab1c49fd2014c60b1";
-static const char* kOAuthTokenEndpoint =
-    "https://oauth.yandex.ru/token";
-static const char* kOAuthScope = "";
-}
-
 YandexDiskSettingsPage::YandexDiskSettingsPage(SettingsDialog* parent)
     : SettingsPage(parent),
       ui_(new Ui::YandexDiskSettingsPage),
@@ -55,32 +45,17 @@ YandexDiskSettingsPage::YandexDiskSettingsPage(SettingsDialog* parent)
 YandexDiskSettingsPage::~YandexDiskSettingsPage() { delete ui_; }
 
 void YandexDiskSettingsPage::Load() {
-  QSettings s;
-  s.beginGroup(YandexDiskService::kSettingsGroup);
-
-  const QString name = s.value("name").toString();
-
-  if (service_->has_credentials() && !name.isEmpty()) {
-    ui_->login_state->SetLoggedIn(LoginStateWidget::LoggedIn, name);
+  if (service_->has_credentials()) {
+    ui_->login_state->SetLoggedIn(LoginStateWidget::LoggedIn, QString());
   }
 }
 
 void YandexDiskSettingsPage::Save() {
-  QSettings s;
-  s.beginGroup(YandexDiskService::kSettingsGroup);
 }
 
 void YandexDiskSettingsPage::LoginClicked() {
-  OAuthenticator* authenticator =
-      new OAuthenticator(kOAuthClientId, kOAuthClientSecret,
-                         OAuthenticator::RedirectStyle::REMOTE_WITH_STATE);
-  connect(authenticator, SIGNAL(Finished()), SLOT(Connected()));
-  NewClosure(authenticator, SIGNAL(Finished()), service_,
-             SLOT(AuthenticationFinished(OAuthenticator*)), authenticator);
-  authenticator->StartAuthorisation(kOAuthEndpoint, kOAuthTokenEndpoint,
-                                    kOAuthScope);
-
-  ui_->login_button->setEnabled(false);;
+  ui_->login_button->setEnabled(false);
+  service_->StartAuthentification();
 }
 
 bool YandexDiskSettingsPage::eventFilter(QObject* object, QEvent* event) {
@@ -98,10 +73,5 @@ void YandexDiskSettingsPage::LogoutClicked() {
 }
 
 void YandexDiskSettingsPage::Connected() {
-  QSettings s;
-  s.beginGroup(YandexDiskService::kSettingsGroup);
-
-  const QString name = s.value("name").toString();
-
-  ui_->login_state->SetLoggedIn(LoginStateWidget::LoggedIn, name);
+  ui_->login_state->SetLoggedIn(LoginStateWidget::LoggedIn, QString());
 }

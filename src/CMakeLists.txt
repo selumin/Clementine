@@ -1184,11 +1184,11 @@ optional_source(HAVE_YANDEX_DISK
   SOURCES
     internet/yandexdisk/yadiskservice.cpp
     internet/yandexdisk/yadisksettingspage.cpp
-    #internet/yandexdisk/yadiskurlhandler.cpp
+    internet/yandexdisk/yadiskurlhandler.cpp
   HEADERS
     internet/yandexdisk/yadiskservice.h
     internet/yandexdisk/yadisksettingspage.h
-    #internet/yandexdisk/yadiskurlhandler.h
+    internet/yandexdisk/yadiskurlhandler.h
   UI
     internet/yandexdisk/yadisksettingspage.ui
 )
