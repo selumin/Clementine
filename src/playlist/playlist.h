@@ -37,6 +37,7 @@ class TaskManager;
 
 class QSortFilterProxyModel;
 class QUndoStack;
+class QStringList;
 
 namespace PlaylistUndoCommands {
 class InsertItems;
@@ -157,6 +158,8 @@ class Playlist : public QAbstractListModel {
 
   static const char* kPathType;
   static const char* kWriteMetadata;
+  static const char* kSortIgnorePrefix;
+  static const char* kSortIgnorePrefixList;
 
   static const int kUndoStackSize;
   static const int kUndoItemLimit;
@@ -165,7 +168,7 @@ class Playlist : public QAbstractListModel {
   static const qint64 kMaxScrobblePointNsecs;
 
   static bool CompareItems(int column, Qt::SortOrder order, PlaylistItemPtr a,
-                           PlaylistItemPtr b);
+                           PlaylistItemPtr b, const QStringList& prefixes = {});
 
   static QString column_name(Column column);
   static QString abbreviated_column_name(Column column);
@@ -232,6 +235,16 @@ class Playlist : public QAbstractListModel {
   void set_lastfm_status(LastFMStatus status) { lastfm_status_ = status; }
   void set_have_incremented_playcount() { have_incremented_playcount_ = true; }
   void UpdateScrobblePoint(qint64 seek_point_nanosec = 0);
+
+  // play count tracking
+  qint64 play_count_point_nanosec() const { return play_count_point_; }
+  void set_max_play_count_point_nsecs(qint64 max_play_count_point_nsecs) {
+    max_play_count_point_nsecs_ = max_play_count_point_nsecs;
+  }
+  qint64 get_max_play_count_point_nsecs() const {
+    return max_play_count_point_nsecs_;
+  }
+  void UpdatePlayCountPoint(qint64 seek_point_nanosec = 0);
 
   // Changing the playlist
   void InsertItems(const PlaylistItemList& items, int pos = -1,
@@ -437,6 +450,8 @@ signals:
   LastFMStatus lastfm_status_;
   bool have_incremented_playcount_;
 
+  qint64 play_count_point_;
+
   PlaylistSequence* playlist_sequence_;
 
   // Hack to stop QTreeView::setModel sorting the playlist
@@ -450,6 +465,9 @@ signals:
   QList<SongInsertVetoListener*> veto_listeners_;
 
   QString special_type_;
+
+  qint64 min_play_count_point_nsecs_;
+  qint64 max_play_count_point_nsecs_;
 
   // Cancel async restore if songs are already replaced
   bool cancel_restore_;

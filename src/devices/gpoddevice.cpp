@@ -47,7 +47,7 @@ void GPodDevice::Init() {
                            shared_from_this());
   loader_->moveToThread(loader_thread_);
 
-  connect(loader_, SIGNAL(Error(QString)), SIGNAL(Error(QString)));
+  connect(loader_, SIGNAL(Error(QString)), SLOT(LoaderError(QString)));
   connect(loader_, SIGNAL(TaskStarted(int)), SIGNAL(TaskStarted(int)));
   connect(loader_, SIGNAL(LoadFinished(Itdb_iTunesDB*)),
           SLOT(LoadFinished(Itdb_iTunesDB*)));
@@ -61,6 +61,11 @@ void GPodDevice::LoadFinished(Itdb_iTunesDB* db) {
   QMutexLocker l(&db_mutex_);
   db_ = db;
   db_wait_cond_.wakeAll();
+
+  loader_thread_->quit();
+  loader_thread_->wait(1000);
+  loader_thread_->deleteLater();
+  loader_thread_ = nullptr;
 
   loader_->deleteLater();
   loader_ = nullptr;
@@ -113,7 +118,7 @@ bool GPodDevice::CopyToStorage(const CopyJob& job) {
       track, QDir::toNativeSeparators(job.source_).toLocal8Bit().constData(),
       &error);
   if (error) {
-    qLog(Error) << "copying failed:" << error->message;
+    qLog(Error) << "copying failed:" << QString::fromUtf8(error->message);
     app_->AddError(QString::fromUtf8(error->message));
     g_error_free(error);
 
@@ -138,7 +143,8 @@ void GPodDevice::WriteDatabase(bool success) {
     GError* error = nullptr;
     itdb_write(db_, &error);
     if (error) {
-      qLog(Error) << "writing database failed:" << error->message;
+      qLog(Error) << "writing database failed:"
+                  << QString::fromUtf8(error->message);
       app_->AddError(QString::fromUtf8(error->message));
       g_error_free(error);
     } else {
@@ -221,6 +227,10 @@ bool GPodDevice::DeleteFromStorage(const DeleteJob& job) {
 void GPodDevice::FinishDelete(bool success) {
   WriteDatabase(success);
   ConnectedDevice::FinishDelete(success);
+}
+
+void GPodDevice::LoaderError(const QString& message) {
+  app_->AddError(message);
 }
 
 bool GPodDevice::GetSupportedFiletypes(QList<Song::FileType>* ret) {

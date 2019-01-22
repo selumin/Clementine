@@ -54,20 +54,25 @@ void MtpDevice::Init() {
       new MtpLoader(url_, app_->task_manager(), backend_, shared_from_this());
   loader_->moveToThread(loader_thread_);
 
-  connect(loader_, SIGNAL(Error(QString)), SIGNAL(Error(QString)));
+  connect(loader_, SIGNAL(Error(QString)), SLOT(LoaderError(QString)));
   connect(loader_, SIGNAL(TaskStarted(int)), SIGNAL(TaskStarted(int)));
-  connect(loader_, SIGNAL(LoadFinished()), SLOT(LoadFinished()));
+  connect(loader_, SIGNAL(LoadFinished(bool)), SLOT(LoadFinished(bool)));
   connect(loader_thread_, SIGNAL(started()), loader_, SLOT(LoadDatabase()));
+}
 
+void MtpDevice::ConnectAsync() {
   db_busy_.lock();
   loader_thread_->start();
 }
 
-void MtpDevice::LoadFinished() {
+void MtpDevice::LoadFinished(bool success) {
   loader_->deleteLater();
   loader_ = nullptr;
   db_busy_.unlock();
+  emit ConnectFinished(unique_id_, success);
 }
+
+void MtpDevice::LoaderError(const QString& message) { app_->AddError(message); }
 
 bool MtpDevice::StartCopy(QList<Song::FileType>* supported_types) {
   // Ensure only one "organise files" can be active at any one time

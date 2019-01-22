@@ -17,13 +17,14 @@
    along with Clementine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "gnomeglobalshortcutbackend.h"
-#include "globalshortcuts.h"
+#include "config.h"
 #include "core/closure.h"
 #include "core/logging.h"
+#include "globalshortcuts.h"
+#include "gnomeglobalshortcutbackend.h"
 
-#ifdef QT_DBUS_LIB
-#include "dbus/gnomesettingsdaemon.h"
+#ifdef HAVE_DBUS
+#include <dbus/gnomesettingsdaemon.h>
 #endif
 
 #include <QAction>
@@ -31,16 +32,16 @@
 #include <QDateTime>
 #include <QtDebug>
 
-#ifdef QT_DBUS_LIB
+#ifdef HAVE_DBUS
 #include <QtDBus>
 #endif
 
 const char* GnomeGlobalShortcutBackend::kGsdService =
+    "org.gnome.SettingsDaemon.MediaKeys";
+const char* GnomeGlobalShortcutBackend::kGsdService2 =
     "org.gnome.SettingsDaemon";
 const char* GnomeGlobalShortcutBackend::kGsdPath =
     "/org/gnome/SettingsDaemon/MediaKeys";
-const char* GnomeGlobalShortcutBackend::kGsdInterface =
-    "org.gnome.SettingsDaemon.MediaKeys";
 
 GnomeGlobalShortcutBackend::GnomeGlobalShortcutBackend(GlobalShortcuts* parent)
     : GlobalShortcutBackend(parent),
@@ -48,18 +49,26 @@ GnomeGlobalShortcutBackend::GnomeGlobalShortcutBackend(GlobalShortcuts* parent)
       is_connected_(false) {}
 
 bool GnomeGlobalShortcutBackend::DoRegister() {
-#ifdef QT_DBUS_LIB
+#ifdef HAVE_DBUS
+
   qLog(Debug) << "registering";
-  // Check if the GSD service is available
-  if (!QDBusConnection::sessionBus().interface()->isServiceRegistered(
-           kGsdService)) {
-    qLog(Warning) << "gnome settings daemon not registered";
-    return false;
+
+  if (!interface_) {
+    // Check if the GSD service is available
+    if (QDBusConnection::sessionBus().interface()->isServiceRegistered(
+            kGsdService)) {
+      interface_ = new OrgGnomeSettingsDaemonMediaKeysInterface(
+          kGsdService, kGsdPath, QDBusConnection::sessionBus(), this);
+    } else if (QDBusConnection::sessionBus().interface()->isServiceRegistered(
+                   kGsdService2)) {
+      interface_ = new OrgGnomeSettingsDaemonMediaKeysInterface(
+          kGsdService2, kGsdPath, QDBusConnection::sessionBus(), this);
+    }
   }
 
   if (!interface_) {
-    interface_ = new OrgGnomeSettingsDaemonMediaKeysInterface(
-        kGsdService, kGsdPath, QDBusConnection::sessionBus(), this);
+    qLog(Warning) << "gnome settings daemon not registered";
+    return false;
   }
 
   QDBusPendingReply<> reply =
@@ -71,7 +80,7 @@ bool GnomeGlobalShortcutBackend::DoRegister() {
              SLOT(RegisterFinished(QDBusPendingCallWatcher*)), watcher);
 
   return true;
-#else  // QT_DBUS_LIB
+#else  // HAVE_DBUS
   qLog(Warning) << "dbus not available";
   return false;
 #endif
@@ -79,7 +88,7 @@ bool GnomeGlobalShortcutBackend::DoRegister() {
 
 void GnomeGlobalShortcutBackend::RegisterFinished(
     QDBusPendingCallWatcher* watcher) {
-#ifdef QT_DBUS_LIB
+#ifdef HAVE_DBUS
   QDBusMessage reply = watcher->reply();
   watcher->deleteLater();
 
@@ -94,12 +103,12 @@ void GnomeGlobalShortcutBackend::RegisterFinished(
   is_connected_ = true;
 
   qLog(Debug) << "registered";
-#endif  // QT_DBUS_LIB
+#endif  // HAVE_DBUS
 }
 
 void GnomeGlobalShortcutBackend::DoUnregister() {
   qLog(Debug) << "unregister";
-#ifdef QT_DBUS_LIB
+#ifdef HAVE_DBUS
   // Check if the GSD service is available
   if (!QDBusConnection::sessionBus().interface()->isServiceRegistered(
            kGsdService))

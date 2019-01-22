@@ -1,5 +1,4 @@
-execute_process(COMMAND date "+%a %b %d %Y"
-                OUTPUT_VARIABLE RPM_DATE OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(COMMAND env LC_ALL="en_US.utf8" date "+%a %b %d %Y" OUTPUT_VARIABLE RPM_DATE OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/clementine.spec.in
                ${CMAKE_CURRENT_SOURCE_DIR}/clementine.spec @ONLY)
@@ -66,7 +65,7 @@ if (NOT APPLE)
   )
 
   install(FILES clementine.appdata.xml
-    DESTINATION share/appdata
+    DESTINATION share/metainfo
   )
 
   if(INSTALL_UBUNTU_ICONS)

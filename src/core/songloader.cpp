@@ -22,6 +22,7 @@
 
 #include "songloader.h"
 
+#include <algorithm>
 #include <memory>
 
 #include <QBuffer>
@@ -311,7 +312,7 @@ void SongLoader::LoadLocalDirectory(const QString& filename) {
     LoadLocalPartial(it.next());
   }
 
-  qStableSort(songs_.begin(), songs_.end(), CompareSongs);
+  std::stable_sort(songs_.begin(), songs_.end(), CompareSongs);
 
   // Load the first song: all songs will be loaded async, but we want the first
   // one in our list to be fully loaded, so if the user has the "Start playing
@@ -519,8 +520,8 @@ void SongLoader::ErrorMessageReceived(GstMessage* msg) {
   gchar* debugs;
 
   gst_message_parse_error(msg, &error, &debugs);
-  qLog(Error) << error->message;
-  qLog(Error) << debugs;
+  qLog(Error) << QString::fromLocal8Bit(error->message);
+  qLog(Error) << QString::fromLocal8Bit(debugs);
 
   QString message_str = error->message;
 
